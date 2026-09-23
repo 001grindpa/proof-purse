@@ -1,12 +1,12 @@
 # { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
 
 import json
+import re
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 
 from genlayer import *
-
 
 @gl.evm.contract_interface
 class _Recipient:
@@ -32,8 +32,9 @@ ALLOWED_HOSTS = (
     "git.sr.ht",
 )
 
-ACCEPTED_VERDICTS = ("ACCEPTED",)
-NON_PAYING_VERDICTS = ("REJECTED", "PARTIAL", "UNRELATED", "UNKNOWN")
+ZERO = Address("0x0000000000000000000000000000000000000000")
+REVIEW_TIMEOUT_SECS = 3600
+ADDR_RE = re.compile(r"0x[a-fA-F0-9]{40}")
 
 
 @allow_storage
@@ -41,6 +42,7 @@ NON_PAYING_VERDICTS = ("REJECTED", "PARTIAL", "UNRELATED", "UNKNOWN")
 class Bounty:
     funder: Address
     hunter: Address
+    payout_recipient: Address
     title: str
     spec_text: str
     spec_url_a: str
@@ -50,6 +52,7 @@ class Bounty:
     amount: u256
     reserved: u256
     deadline_unix: u256
+    review_opened_unix: u256
     status: str
     submission_status: str
     observed_verdict: str
@@ -123,9 +126,61 @@ class BountyBoard(gl.Contract):
                 "(issue, pull, commit, compare, blob, or raw)"
             )
 
+    def _parse_address(self, raw: str, fallback: Address) -> Address:
+        text = (raw or "").strip()
+        if text == "":
+            return fallback
+        match = ADDR_RE.search(text)
+        if match is None:
+            raise gl.vm.UserError("payout recipient must be a 0x address")
+        return Address(match.group(0))
+
+    def _norm_addr(self, value: str) -> str:
+        match = ADDR_RE.search(value or "")
+        if match is None:
+            return ""
+        return match.group(0).lower()
+
+    def _review_expired(self, bounty: Bounty) -> bool:
+        if bounty.submission_status != "PENDING":
+            return False
+        opened = int(bounty.review_opened_unix)
+        if opened == 0:
+            return True
+        return self._now() >= opened + REVIEW_TIMEOUT_SECS
+
+    def _deadline_passed(self, bounty: Bounty) -> bool:
+        deadline = int(bounty.deadline_unix)
+        return deadline != 0 and self._now() >= deadline
+
+    def _reopen(self, bounty: Bounty, verdict: str, confidence: str) -> None:
+        bounty.status = "OPEN"
+        bounty.submission_status = "REJECTED"
+        bounty.hunter = ZERO
+        bounty.payout_recipient = ZERO
+        bounty.work_url_a = ""
+        bounty.work_url_b = ""
+        bounty.review_opened_unix = 0
+        bounty.observed_verdict = verdict
+        bounty.observed_confidence = confidence
+        bounty.funds_disposition = "RESERVED"
+
     def _extract_page(self, url: str, role: str, title: str, spec_text: str) -> dict:
-        page = gl.nondet.web.get(url)
-        page_text = page.body.decode("utf-8")[:6000]
+        failed = {
+            "page_kind": "OTHER",
+            "repo": "UNKNOWN",
+            "artifact_id": "UNKNOWN",
+            "summary": "",
+            "completeness": "UNKNOWN",
+            "authorized_recipient": "",
+            "page_text": "",
+        }
+        try:
+            page = gl.nondet.web.get(url)
+            page_text = page.body.decode("utf-8")[:6000]
+        except Exception:
+            return failed
+
         prompt = f"""
 You are extracting objective facts from a public software-hosting page.
 Role of this page: {role}
@@ -143,27 +198,40 @@ Return JSON only, with exactly these fields:
   "repo": "owner/name or UNKNOWN",
   "artifact_id": "issue/PR/commit identifier or UNKNOWN",
   "summary": "one short sentence describing what the page shows",
-  "completeness": "COMPLETE"|"PARTIAL"|"UNRELATED"|"UNKNOWN"
+  "completeness": "COMPLETE"|"PARTIAL"|"UNRELATED"|"UNKNOWN",
+  "authorized_recipient": "0x address found on the page or empty"
 }}
 Rules:
 - COMPLETE means the page clearly shows the named artifact and enough content to judge it.
+- PARTIAL means the page is about the task but the work is incomplete.
 - UNRELATED means the page is not about this bounty or repository.
 - UNKNOWN if the page is empty, blocked, or does not identify the artifact.
+- authorized_recipient is a 0x payout address written on the page, else empty.
 - Do not decide whether the bounty should be paid. Only describe the page.
 """
-        extracted = json.loads(gl.nondet.exec_prompt(prompt))
+        try:
+            extracted = json.loads(gl.nondet.exec_prompt(prompt))
+        except Exception:
+            failed["page_text"] = page_text
+            return failed
+
         page_kind = str(extracted.get("page_kind", "OTHER")).upper()
         completeness = str(extracted.get("completeness", "UNKNOWN")).upper()
         if page_kind not in ("ISSUE", "PULL", "COMMIT", "COMPARE", "BLOB", "RAW", "OTHER"):
             page_kind = "OTHER"
         if completeness not in ("COMPLETE", "PARTIAL", "UNRELATED", "UNKNOWN"):
             completeness = "UNKNOWN"
+        authorized = self._norm_addr(str(extracted.get("authorized_recipient", "")))
+        if authorized == "":
+            authorized = self._norm_addr(page_text)
         return {
             "page_kind": page_kind,
             "repo": str(extracted.get("repo", "UNKNOWN"))[:120],
             "artifact_id": str(extracted.get("artifact_id", "UNKNOWN"))[:80],
             "summary": str(extracted.get("summary", ""))[:200],
             "completeness": completeness,
+            "authorized_recipient": authorized,
+            "page_text": page_text,
         }
 
     def _judge_work(
@@ -183,10 +251,10 @@ Bounty title: {title}
 Funder spec text:
 {spec_text}
 
-Spec page A: {json.dumps(spec_a, sort_keys=True)}
-Spec page B: {json.dumps(spec_b, sort_keys=True)}
-Work page A: {json.dumps(work_a, sort_keys=True)}
-Work page B: {json.dumps(work_b, sort_keys=True)}
+Spec page A: {json.dumps({k: spec_a[k] for k in ("page_kind", "repo", "artifact_id", "summary", "completeness")}, sort_keys=True)}
+Spec page B: {json.dumps({k: spec_b[k] for k in ("page_kind", "repo", "artifact_id", "summary", "completeness")}, sort_keys=True)}
+Work page A: {json.dumps({k: work_a[k] for k in ("page_kind", "repo", "artifact_id", "summary", "completeness")}, sort_keys=True)}
+Work page B: {json.dumps({k: work_b[k] for k in ("page_kind", "repo", "artifact_id", "summary", "completeness")}, sort_keys=True)}
 
 Return JSON only, with exactly these fields:
 {{
@@ -201,9 +269,13 @@ Rules:
 - UNRELATED if the work is for a different task or repository.
 - UNKNOWN if pages are incomplete, contradictory, or unreadable.
 - REJECTED if the work is readable and clearly does not fulfill the spec.
-- Never use ACCEPTED when any page completeness is UNKNOWN or UNRELATED.
+- Never use ACCEPTED when any page completeness is PARTIAL, UNKNOWN, or UNRELATED.
 """
-        extracted = json.loads(gl.nondet.exec_prompt(prompt))
+        try:
+            extracted = json.loads(gl.nondet.exec_prompt(prompt))
+        except Exception:
+            return {"verdict": "UNKNOWN", "confidence": "LOW", "reason": "judge parse failed"}
+
         verdict = str(extracted.get("verdict", "UNKNOWN")).upper()
         confidence = str(extracted.get("confidence", "LOW")).upper()
         if verdict not in ("ACCEPTED", "REJECTED", "PARTIAL", "UNRELATED", "UNKNOWN"):
@@ -214,6 +286,61 @@ Rules:
             "verdict": verdict,
             "confidence": confidence,
             "reason": str(extracted.get("reason", ""))[:200],
+        }
+
+    def _decision_from_pages(
+        self,
+        title: str,
+        spec_text: str,
+        spec_url_a: str,
+        spec_url_b: str,
+        work_url_a: str,
+        work_url_b: str,
+        payout_hex: str,
+    ) -> dict:
+        try:
+            spec_a = self._extract_page(spec_url_a, "SPEC_A", title, spec_text)
+            spec_b = self._extract_page(spec_url_b, "SPEC_B", title, spec_text)
+            work_a = self._extract_page(work_url_a, "WORK_A", title, spec_text)
+            work_b = self._extract_page(work_url_b, "WORK_B", title, spec_text)
+            judgment = self._judge_work(title, spec_text, spec_a, spec_b, work_a, work_b)
+        except Exception:
+            return {
+                "verdict": "UNKNOWN",
+                "confidence": "LOW",
+                "reason": "fetch or parse failed",
+                "work_complete": False,
+                "recipient_bound": False,
+            }
+
+        pages = (spec_a, spec_b, work_a, work_b)
+        work_complete = (
+            work_a["completeness"] == "COMPLETE"
+            and work_b["completeness"] == "COMPLETE"
+            and spec_a["completeness"] == "COMPLETE"
+            and spec_b["completeness"] == "COMPLETE"
+        )
+        wanted = payout_hex.lower()
+        recipient_bound = wanted != "" and (
+            work_a["authorized_recipient"] == wanted
+            or work_b["authorized_recipient"] == wanted
+            or wanted in (work_a.get("page_text") or "").lower()
+            or wanted in (work_b.get("page_text") or "").lower()
+        )
+
+        verdict = judgment["verdict"]
+        if any(page["completeness"] in ("PARTIAL", "UNKNOWN", "UNRELATED") for page in pages):
+            if verdict == "ACCEPTED":
+                verdict = "PARTIAL" if any(page["completeness"] == "PARTIAL" for page in pages) else "UNKNOWN"
+        if verdict == "ACCEPTED" and (not work_complete or not recipient_bound):
+            verdict = "UNKNOWN"
+
+        return {
+            "verdict": verdict,
+            "confidence": judgment["confidence"],
+            "reason": judgment["reason"],
+            "work_complete": work_complete,
+            "recipient_bound": recipient_bound,
         }
 
     @gl.public.write.payable
@@ -240,10 +367,10 @@ Rules:
             raise gl.vm.UserError("deadline must be in the future or zero")
 
         bounty_id = str(self.next_bounty_id)
-        zero = Address("0x0000000000000000000000000000000000000000")
         self.bounties[bounty_id] = Bounty(
             funder=gl.message.sender_address,
-            hunter=zero,
+            hunter=ZERO,
+            payout_recipient=ZERO,
             title=title.strip()[:120],
             spec_text=spec_text.strip()[:2000],
             spec_url_a=spec_url_a.strip(),
@@ -253,6 +380,7 @@ Rules:
             amount=amount,
             reserved=amount,
             deadline_unix=deadline_unix,
+            review_opened_unix=0,
             status="OPEN",
             submission_status="NONE",
             observed_verdict="UNRESOLVED",
@@ -264,26 +392,48 @@ Rules:
         return bounty_id
 
     @gl.public.write
-    def submit_work(self, bounty_id: str, work_url_a: str, work_url_b: str) -> None:
+    def submit_work(
+        self,
+        bounty_id: str,
+        work_url_a: str,
+        work_url_b: str,
+        payout_recipient: str,
+    ) -> None:
         bounty = self._require_bounty(bounty_id)
         if bounty.status != "OPEN":
             raise gl.vm.UserError("bounty is not open for submissions")
         if bounty.submission_status == "PENDING":
             raise gl.vm.UserError("a submission is already pending review")
-        if int(bounty.deadline_unix) != 0 and self._now() >= int(bounty.deadline_unix):
+        if self._deadline_passed(bounty):
             raise gl.vm.UserError("bounty deadline has passed")
         if gl.message.sender_address == bounty.funder:
             raise gl.vm.UserError("funder cannot submit work on their own bounty")
 
         self._assert_independent_pair(work_url_a, work_url_b)
+        recipient = self._parse_address(payout_recipient, gl.message.sender_address)
+        if recipient == bounty.funder:
+            raise gl.vm.UserError("payout recipient cannot be the funder")
+        if recipient == ZERO:
+            raise gl.vm.UserError("payout recipient is required")
 
         bounty.hunter = gl.message.sender_address
+        bounty.payout_recipient = recipient
         bounty.work_url_a = work_url_a.strip()
         bounty.work_url_b = work_url_b.strip()
         bounty.submission_status = "PENDING"
         bounty.status = "PENDING_REVIEW"
+        bounty.review_opened_unix = self._now()
         bounty.observed_verdict = "UNRESOLVED"
         bounty.observed_confidence = "NONE"
+
+    @gl.public.write
+    def expire_review(self, bounty_id: str) -> None:
+        bounty = self._require_bounty(bounty_id)
+        if bounty.status != "PENDING_REVIEW" or bounty.submission_status != "PENDING":
+            raise gl.vm.UserError("no pending review to expire")
+        if not self._review_expired(bounty) and not self._deadline_passed(bounty):
+            raise gl.vm.UserError("review timeout has not passed")
+        self._reopen(bounty, "UNKNOWN", "LOW")
 
     @gl.public.write
     def resolve(self, bounty_id: str) -> None:
@@ -301,63 +451,52 @@ Rules:
         spec_url_b = bounty.spec_url_b
         work_url_a = bounty.work_url_a
         work_url_b = bounty.work_url_b
-        hunter = bounty.hunter
+        payout_hex = bounty.payout_recipient.as_hex
         amount = bounty.amount
+        recipient = bounty.payout_recipient
 
-        def fetch_and_judge() -> str:
-            spec_a = self._extract_page(spec_url_a, "SPEC_A", title, spec_text)
-            spec_b = self._extract_page(spec_url_b, "SPEC_B", title, spec_text)
-            work_a = self._extract_page(work_url_a, "WORK_A", title, spec_text)
-            work_b = self._extract_page(work_url_b, "WORK_B", title, spec_text)
-
-            if spec_a["completeness"] == "UNRELATED" or spec_b["completeness"] == "UNRELATED":
-                raise gl.vm.UserError("spec sources are unrelated to the bounty")
-            if spec_a["repo"] != "UNKNOWN" and spec_b["repo"] != "UNKNOWN":
-                if spec_a["repo"].lower() != spec_b["repo"].lower():
-                    raise gl.vm.UserError("spec sources disagree on repository")
-            if work_a["completeness"] == "UNRELATED" and work_b["completeness"] == "UNRELATED":
-                raise gl.vm.UserError("work sources are unrelated to the bounty")
-
-            judgment = self._judge_work(title, spec_text, spec_a, spec_b, work_a, work_b)
-            # Incomplete pages cannot pay, even if the judge said ACCEPTED.
-            blocking = (
-                spec_a["completeness"] in ("UNKNOWN", "PARTIAL"),
-                spec_b["completeness"] in ("UNKNOWN", "PARTIAL"),
-                work_a["completeness"] in ("UNKNOWN", "UNRELATED"),
-                work_b["completeness"] in ("UNKNOWN", "UNRELATED"),
+        def leader_fn():
+            return self._decision_from_pages(
+                title,
+                spec_text,
+                spec_url_a,
+                spec_url_b,
+                work_url_a,
+                work_url_b,
+                payout_hex,
             )
-            if judgment["verdict"] == "ACCEPTED" and any(blocking):
-                judgment["verdict"] = "UNKNOWN"
-                judgment["confidence"] = "LOW"
-                judgment["reason"] = "accepted verdict blocked by incomplete evidence"
-            return json.dumps(judgment, sort_keys=True, separators=(",", ":"))
 
-        result = json.loads(gl.eq_principle.strict_eq(fetch_and_judge))
-        verdict = str(result["verdict"]).upper()
-        confidence = str(result["confidence"]).upper()
+        def validator_fn(leader_result) -> bool:
+            if not isinstance(leader_result, gl.vm.Return):
+                return False
+            leader_data = leader_result.calldata
+            validator_data = leader_fn()
+            return (
+                leader_data.get("verdict") == validator_data.get("verdict")
+                and bool(leader_data.get("work_complete")) == bool(validator_data.get("work_complete"))
+                and bool(leader_data.get("recipient_bound")) == bool(validator_data.get("recipient_bound"))
+            )
+
+        result = gl.vm.run_nondet_unsafe(leader_fn, validator_fn)
+        verdict = str(result.get("verdict", "UNKNOWN")).upper()
+        confidence = str(result.get("confidence", "LOW")).upper()
+        work_complete = bool(result.get("work_complete", False))
+        recipient_bound = bool(result.get("recipient_bound", False))
 
         bounty.observed_verdict = verdict
         bounty.observed_confidence = confidence
 
-        # UNKNOWN / PARTIAL / UNRELATED can never move funds to the hunter.
-        eligible = verdict == "ACCEPTED"
-
+        eligible = verdict == "ACCEPTED" and work_complete and recipient_bound
         if eligible:
             bounty.status = "ACCEPTED"
             bounty.submission_status = "ACCEPTED"
             bounty.reserved = 0
+            bounty.review_opened_unix = 0
             bounty.funds_disposition = "PAID_TO_HUNTER"
             self.reserved_bounties = self.reserved_bounties - amount
-            _Recipient(hunter).emit_transfer(value=amount)
+            _Recipient(recipient).emit_transfer(value=amount)
         else:
-            # Funds stay reserved for a later hunter or a funder cancel.
-            zero = Address("0x0000000000000000000000000000000000000000")
-            bounty.status = "OPEN"
-            bounty.submission_status = "REJECTED"
-            bounty.hunter = zero
-            bounty.work_url_a = ""
-            bounty.work_url_b = ""
-            bounty.funds_disposition = "RESERVED"
+            self._reopen(bounty, verdict, confidence)
 
     @gl.public.write
     def cancel(self, bounty_id: str) -> None:
@@ -367,9 +506,8 @@ Rules:
         if bounty.status == "ACCEPTED" or bounty.status == "CANCELLED":
             raise gl.vm.UserError("bounty can no longer be cancelled")
         if bounty.submission_status == "PENDING":
-            deadline = int(bounty.deadline_unix)
-            if deadline == 0 or self._now() < deadline:
-                raise gl.vm.UserError("cannot cancel while a submission is pending review")
+            if not self._review_expired(bounty) and not self._deadline_passed(bounty):
+                raise gl.vm.UserError("cannot cancel while a live review is pending")
 
         if bounty.reserved != bounty.amount:
             raise gl.vm.UserError("bounty reserve is inconsistent")
@@ -380,7 +518,10 @@ Rules:
         funder = bounty.funder
         bounty.status = "CANCELLED"
         bounty.submission_status = "NONE"
+        bounty.hunter = ZERO
+        bounty.payout_recipient = ZERO
         bounty.reserved = 0
+        bounty.review_opened_unix = 0
         bounty.funds_disposition = "REFUNDED_TO_FUNDER"
         self.reserved_bounties = self.reserved_bounties - amount
         _Recipient(funder).emit_transfer(value=amount)
@@ -393,6 +534,7 @@ Rules:
                 "bounty_id": bounty_id,
                 "funder": bounty.funder.as_hex,
                 "hunter": bounty.hunter.as_hex,
+                "payout_recipient": bounty.payout_recipient.as_hex,
                 "title": bounty.title,
                 "spec_text": bounty.spec_text,
                 "spec_url_a": bounty.spec_url_a,
@@ -402,6 +544,7 @@ Rules:
                 "amount": int(bounty.amount),
                 "reserved": int(bounty.reserved),
                 "deadline_unix": int(bounty.deadline_unix),
+                "review_opened_unix": int(bounty.review_opened_unix),
                 "status": bounty.status,
                 "submission_status": bounty.submission_status,
                 "observed_verdict": bounty.observed_verdict,
