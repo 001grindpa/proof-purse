@@ -1,5 +1,8 @@
 # GenLayer Bounty Board
 
+Deployed contract: `0x792FeDB1066296e7De89bf1CD4b012e0fb02Cf58` on GenLayer
+StudioNet (chain ID `61999`). [Inspect it in the StudioNet explorer](https://explorer-studio.genlayer.com/address/0x792FeDB1066296e7De89bf1CD4b012e0fb02Cf58).
+
 A GenLayer Intelligent Contract that escrows a bounty against a public spec and
 pays a hunter only when validators agree the work fulfills it.
 
@@ -12,7 +15,8 @@ for a 1:1 refund when no review is pending, or after the deadline.
 1. A funder creates a bounty with spec text, two independent code-host URLs,
    and a GEN amount. That amount is locked as `RESERVED`.
 2. A hunter submits two independent work URLs (for example a pull request and
-   a commit).
+  a commit), plus an optional payout recipient address. A blank recipient uses
+  the submitting wallet.
 3. Anyone can call `resolve`. Validators fetch all four pages, extract facts
    with an LLM, and accept the result only under `strict_eq`.
 4. `ACCEPTED` pays the reserved amount to the hunter. `PARTIAL`, `UNRELATED`,
@@ -20,7 +24,7 @@ for a 1:1 refund when no review is pending, or after the deadline.
 
 ## Contract API
 
-Source: [BountyBoard.py](BountyBoard.py)
+Source: [BountyBoard.py](src/BountyBoard.py)
 
 ### Constructor
 
@@ -61,7 +65,8 @@ Returns the new bounty ID as a string.
 submit_work(
   "1",
   "https://github.com/org/repo/pull/88",
-  "https://github.com/org/repo/commit/abc123"
+  "https://github.com/org/repo/commit/abc123",
+  "0x0000000000000000000000000000000000000001"
 )
 ```
 
@@ -69,6 +74,8 @@ submit_work(
 - Not after the deadline
 - Not while another submission is `PENDING`
 - The funder cannot submit on their own bounty
+- The payout recipient must be a `0x` address and cannot be the funder. If
+  blank, the connected wallet is used.
 
 ### Resolve a bounty
 
@@ -93,15 +100,24 @@ marked `REJECTED`, the hunter slot is cleared, and the reserve stays locked.
 cancel("1")
 ```
 
-Only the funder. Not allowed while a submission is pending, unless the
-deadline has passed. Refunds the reserved amount to the funder
+Only the funder. Not allowed while a submission is pending, unless the review
+timeout or deadline has passed. Refunds the reserved amount to the funder
 (`REFUNDED_TO_FUNDER`).
+
+### Expire a stuck review
+
+```text
+expire_review("1")
+```
+
+Anyone can reopen a `PENDING_REVIEW` bounty after the review timeout or
+deadline. The bounty returns to `OPEN` without moving funds.
 
 ### View methods
 
 | Method | Returns |
 | --- | --- |
-| `get_bounty(bounty_id)` | Full bounty JSON, including URLs, reserve, verdict, and `funds_disposition` |
+| `get_bounty(bounty_id)` | Full bounty JSON, including URLs, payout recipient, review timestamp, reserve, verdict, and `funds_disposition` |
 | `get_bounty_status(bounty_id)` | `OPEN`, `PENDING_REVIEW`, `ACCEPTED`, or `CANCELLED` |
 | `get_bounty_count()` | Number of bounties created |
 | `get_reserved_bounties()` | Sum of amounts still locked |
@@ -112,7 +128,7 @@ deadline has passed. Refunds the reserved amount to the funder
 2. Deploy. There are no constructor inputs.
 3. Call `create_bounty` with two trusted spec URLs and a GEN value.
 4. From a second account, call `submit_work` with two work URLs.
-5. Call `resolve`, then inspect `get_bounty`.
+5. Call `resolve`, or `expire_review` after a stuck review times out, then inspect `get_bounty`.
 
 ## Deploy with CLI
 
@@ -138,13 +154,20 @@ Submit work:
 genlayer write <contract_address> submit_work \
   --arg bounty_id "1" \
   --arg work_url_a "https://github.com/org/repo/pull/88" \
-  --arg work_url_b "https://github.com/org/repo/commit/abc123"
+  --arg work_url_b "https://github.com/org/repo/commit/abc123" \
+  --arg payout_recipient "0x0000000000000000000000000000000000000001"
 ```
 
 Resolve:
 
 ```bash
 genlayer write <contract_address> resolve --arg bounty_id "1"
+```
+
+Expire a stuck review:
+
+```bash
+genlayer write <contract_address> expire_review --arg bounty_id "1"
 ```
 
 Network and wallet flags: [deployment guide](https://docs.genlayer.com/developers/intelligent-contracts/deploying).

@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -8,24 +9,275 @@
   <title>Proof Purse | Verified Bounty Escrow</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet" />
   <link rel="stylesheet" href="/static/style.css" />
 </head>
+
 <body>
   <div id="landing-view" class="view-container view-active">
     <header class="nav-header">
-      <a class="brand-logo-container" href="#landing-view" aria-label="Proof Purse home"><img class="brand-logo-img" src="/static/proof-purse-logo-w.png" alt="" /><span class="brand-name">Proof Purse <span class="brand-pill">StudioNet</span></span></a>
-      <nav class="nav-links" aria-label="Primary navigation"><a href="#how-it-works" class="nav-link">How It Works</a><a href="#features" class="nav-link">Features</a><a href="#sources" class="nav-link">Trusted Sources</a><a href="#faq" class="nav-link">FAQ</a><a href="https://explorer-studio.genlayer.com/address/0x97298FdFf27aE250e8194a7cC66ea82975ea2B36" target="_blank" rel="noreferrer" class="nav-link">Contract ↗</a></nav>
-      <div class="nav-actions"><span class="status-pill desktop-only"><span class="status-dot"></span>StudioNet · 61999</span><button class="btn-primary enter-app-trigger" type="button">Enter App <span aria-hidden="true">→</span></button></div>
+      <a class="brand-logo-container" href="#landing-view" aria-label="Proof Purse home"><img class="brand-logo-img"
+          src="/static/proof-purse-logo-w.png" alt="" /><span class="brand-name">Proof Purse <span
+            class="brand-pill">StudioNet</span></span></a>
+      <nav class="nav-links" aria-label="Primary navigation"><a href="#how-it-works" class="nav-link">How It Works</a><a
+          href="#features" class="nav-link">Features</a><a href="#sources" class="nav-link">Trusted Sources</a><a
+          href="#faq" class="nav-link">FAQ</a><a
+          href="https://explorer-studio.genlayer.com/address/0x792FeDB1066296e7De89bf1CD4b012e0fb02Cf58" target="_blank"
+          rel="noreferrer" class="nav-link">Contract ↗</a></nav>
+      <div class="nav-actions"><span class="status-pill desktop-only"><span class="status-dot"></span>StudioNet ·
+          61999</span><button class="btn-primary enter-app-trigger" type="button">Enter App <span
+            aria-hidden="true">→</span></button></div>
     </header>
-    <section class="hero-wrapper"><div><div class="eyebrow-badge"><span class="status-dot status-dot-cyan"></span>Dual-source bounty escrow</div><h1 class="hero-title">Fund useful work. <span class="gradient-text-brand">Pay on proof.</span></h1><p class="hero-subtitle">Proof Purse locks GEN against a public software spec. Hunters submit evidence from two independent code hosts, and GenLayer validators decide whether the work earns the bounty.</p><div class="hero-cta-group"><button class="btn-primary enter-app-trigger" type="button">Open the bounty board ↗</button><a class="btn-secondary" href="https://explorer-studio.genlayer.com/address/0x97298FdFf27aE250e8194a7cC66ea82975ea2B36" target="_blank" rel="noreferrer">Inspect contract ↗</a></div><div class="hero-stats-row"><div class="stat-item"><span class="stat-value gradient-text-cyan">Two-source</span><span class="stat-label">Evidence checks</span></div><div class="stat-item"><span class="stat-value gradient-text-gold">GEN</span><span class="stat-label">Native escrow</span></div><div class="stat-item"><span class="stat-value">On-chain</span><span class="stat-label">Resolution</span></div></div></div><div class="bounty-mockup glass-panel"><div class="mockup-header"><div><span class="eyebrow-badge">Live bounty preview</span><h2>Ship the migration</h2></div><span class="status-pill status-open"><span class="status-dot"></span>Open</span></div><div class="mockup-amount"><span>Reserved reward</span><strong>2.50 GEN</strong></div><div class="mockup-grid"><div><span>Evidence A</span><strong>GitHub issue</strong></div><div><span>Evidence B</span><strong>GitLab merge request</strong></div><div><span>Consensus</span><strong class="text-lime">Pending submission</strong></div><div><span>Deadline</span><strong>Open until resolved</strong></div></div><div class="consensus-line"><span class="status-dot status-dot-cyan"></span> Two independent pages make the proof legible.</div></div></section>
-    <section id="how-it-works" class="features-section"><div class="section-header"><div class="eyebrow-badge">Simple 3-step protocol</div><h2 class="section-title">A bounty with a verifiable finish line.</h2><p class="section-desc">The funder writes the brief, the hunter links the work, and GenLayer reads both sides of the evidence before funds move.</p></div><div class="steps-wrapper"><article class="step-card"><div class="step-number">01</div><h3 class="step-title">Lock the brief</h3><p class="step-text">Post a title, plain-language spec, two source URLs, deadline, and GEN reward.</p></article><article class="step-card"><div class="step-number">02</div><h3 class="step-title">Submit the proof</h3><p class="step-text">A hunter links two independent pages showing the implementation and its context.</p></article><article class="step-card"><div class="step-number">03</div><h3 class="step-title">Resolve the work</h3><p class="step-text">Anyone can call resolve. Accepted work pays the hunter; rejected work keeps funds with the funder.</p></article></div></section>
-    <section id="features" class="features-section"><div class="section-header"><div class="eyebrow-badge">Built for public work</div><h2 class="section-title">Proof that travels with the code.</h2></div><div class="features-grid"><article class="feature-card"><div class="feature-icon-wrapper">◇</div><h3 class="feature-card-title">Dual-source security</h3><p class="feature-card-text">Two different code hosts make a single broken or misleading page less persuasive.</p></article><article class="feature-card"><div class="feature-icon-wrapper feature-icon-gold">◎</div><h3 class="feature-card-title">Native GEN escrow</h3><p class="feature-card-text">The bounty is reserved in the contract until an accepted resolution or cancellation.</p></article><article class="feature-card"><div class="feature-icon-wrapper feature-icon-lime">✓</div><h3 class="feature-card-title">Readable decisions</h3><p class="feature-card-text">The contract stores verdict, confidence, and evidence facts for inspection after consensus.</p></article></div></section>
-    <section id="sources" class="features-section"><div class="section-header"><div class="eyebrow-badge">Consensus ecosystem</div><h2 class="section-title">Trusted code sources</h2><p class="section-desc">Proof Purse accepts secure URLs from these independent hosting networks.</p></div><div class="sources-grid"><span class="source-badge">◈ GitHub</span><span class="source-badge">◈ GitLab</span><span class="source-badge">◈ Bitbucket</span><span class="source-badge">◈ Codeberg</span><span class="source-badge">◈ SourceHut</span></div></section>
-    <section id="faq" class="features-section"><div class="section-header"><div class="eyebrow-badge">Common questions</div><h2 class="section-title">A clearer way to commission work.</h2></div><div class="faq-grid"><article class="faq-card"><h3 class="faq-q">Why are two URLs required?</h3><p class="faq-a">Validators compare evidence from two distinct hosts so a single page is not the only source of truth.</p></article><article class="faq-card"><h3 class="faq-q">What does resolve do?</h3><p class="faq-a">It asks GenLayer validators to read the submitted work against the bounty spec and settle the reserved funds.</p></article><article class="faq-card"><h3 class="faq-q">Can a funder cancel?</h3><p class="faq-a">An open bounty can be cancelled by its funder, returning the reserved amount according to the contract rules.</p></article></div></section>
-    <section class="cta-banner"><div class="eyebrow-badge">Start commissioning</div><h2 class="section-title">Put a finish line on good work.</h2><p class="section-desc">Connect to GenLayer StudioNet and publish the first bounty.</p><button class="btn-primary enter-app-trigger" type="button">Enter Proof Purse ↗</button></section><footer class="app-footer"><span>Proof Purse · Verified bounty escrow</span><a class="footer-link" href="https://github.com/001grindpa/proof-purse" target="_blank" rel="noreferrer">GitHub ↗</a></footer>
+    <section class="hero-wrapper">
+      <div>
+        <div class="eyebrow-badge"><span class="status-dot status-dot-cyan"></span>Dual-source bounty escrow</div>
+        <h1 class="hero-title">Fund useful work. <span class="gradient-text-brand">Pay on proof.</span></h1>
+        <p class="hero-subtitle">Proof Purse locks GEN against a public software spec. Hunters submit evidence from two
+          independent code hosts, and GenLayer validators decide whether the work earns the bounty.</p>
+        <div class="hero-cta-group"><button class="btn-primary enter-app-trigger" type="button">Open the bounty board
+            ↗</button><a class="btn-secondary"
+            href="https://explorer-studio.genlayer.com/address/0x792FeDB1066296e7De89bf1CD4b012e0fb02Cf58"
+            target="_blank" rel="noreferrer">Inspect contract ↗</a></div>
+        <div class="hero-stats-row">
+          <div class="stat-item"><span class="stat-value gradient-text-cyan">Two-source</span><span
+              class="stat-label">Evidence checks</span></div>
+          <div class="stat-item"><span class="stat-value gradient-text-gold">GEN</span><span class="stat-label">Native
+              escrow</span></div>
+          <div class="stat-item"><span class="stat-value">On-chain</span><span class="stat-label">Resolution</span>
+          </div>
+        </div>
+      </div>
+      <div class="bounty-mockup glass-panel">
+        <div class="mockup-header">
+          <div><span class="eyebrow-badge">Live bounty preview</span>
+            <h2>Ship the migration</h2>
+          </div><span class="status-pill status-open"><span class="status-dot"></span>Open</span>
+        </div>
+        <div class="mockup-amount"><span>Reserved reward</span><strong>2.50 GEN</strong></div>
+        <div class="mockup-grid">
+          <div><span>Evidence A</span><strong>GitHub issue</strong></div>
+          <div><span>Evidence B</span><strong>GitLab merge request</strong></div>
+          <div><span>Consensus</span><strong class="text-lime">Pending submission</strong></div>
+          <div><span>Deadline</span><strong>Open until resolved</strong></div>
+        </div>
+        <div class="consensus-line"><span class="status-dot status-dot-cyan"></span> Two independent pages make the
+          proof legible.</div>
+      </div>
+    </section>
+    <section id="how-it-works" class="features-section">
+      <div class="section-header">
+        <div class="eyebrow-badge">Simple 3-step protocol</div>
+        <h2 class="section-title">A bounty with a verifiable finish line.</h2>
+        <p class="section-desc">The funder writes the brief, the hunter links the work, and GenLayer reads both sides of
+          the evidence before funds move.</p>
+      </div>
+      <div class="steps-wrapper">
+        <article class="step-card">
+          <div class="step-number">01</div>
+          <h3 class="step-title">Lock the brief</h3>
+          <p class="step-text">Post a title, plain-language spec, two source URLs, deadline, and GEN reward.</p>
+        </article>
+        <article class="step-card">
+          <div class="step-number">02</div>
+          <h3 class="step-title">Submit the proof</h3>
+          <p class="step-text">A hunter links two independent pages showing the implementation and its context.</p>
+        </article>
+        <article class="step-card">
+          <div class="step-number">03</div>
+          <h3 class="step-title">Resolve the work</h3>
+          <p class="step-text">Anyone can call resolve. Accepted work pays the hunter; rejected work keeps funds with
+            the funder.</p>
+        </article>
+      </div>
+    </section>
+    <section id="features" class="features-section">
+      <div class="section-header">
+        <div class="eyebrow-badge">Built for public work</div>
+        <h2 class="section-title">Proof that travels with the code.</h2>
+      </div>
+      <div class="features-grid">
+        <article class="feature-card">
+          <div class="feature-icon-wrapper">◇</div>
+          <h3 class="feature-card-title">Dual-source security</h3>
+          <p class="feature-card-text">Two different code hosts make a single broken or misleading page less persuasive.
+          </p>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon-wrapper feature-icon-gold">◎</div>
+          <h3 class="feature-card-title">Native GEN escrow</h3>
+          <p class="feature-card-text">The bounty is reserved in the contract until an accepted resolution or
+            cancellation.</p>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon-wrapper feature-icon-lime">✓</div>
+          <h3 class="feature-card-title">Readable decisions</h3>
+          <p class="feature-card-text">The contract stores verdict, confidence, and evidence facts for inspection after
+            consensus.</p>
+        </article>
+      </div>
+    </section>
+    <section id="sources" class="features-section">
+      <div class="section-header">
+        <div class="eyebrow-badge">Consensus ecosystem</div>
+        <h2 class="section-title">Trusted code sources</h2>
+        <p class="section-desc">Proof Purse accepts secure URLs from these independent hosting networks.</p>
+      </div>
+      <div class="sources-grid"><span class="source-badge">◈ GitHub</span><span class="source-badge">◈
+          GitLab</span><span class="source-badge">◈ Bitbucket</span><span class="source-badge">◈ Codeberg</span><span
+          class="source-badge">◈ SourceHut</span></div>
+    </section>
+    <section id="faq" class="features-section">
+      <div class="section-header">
+        <div class="eyebrow-badge">Common questions</div>
+        <h2 class="section-title">A clearer way to commission work.</h2>
+      </div>
+      <div class="faq-grid">
+        <article class="faq-card">
+          <h3 class="faq-q">Why are two URLs required?</h3>
+          <p class="faq-a">Validators compare evidence from two distinct hosts so a single page is not the only source
+            of truth.</p>
+        </article>
+        <article class="faq-card">
+          <h3 class="faq-q">What does resolve do?</h3>
+          <p class="faq-a">It asks GenLayer validators to read the submitted work against the bounty spec and settle the
+            reserved funds.</p>
+        </article>
+        <article class="faq-card">
+          <h3 class="faq-q">Can a funder cancel?</h3>
+          <p class="faq-a">An open bounty can be cancelled by its funder, returning the reserved amount according to the
+            contract rules.</p>
+        </article>
+      </div>
+    </section>
+    <section class="cta-banner">
+      <div class="eyebrow-badge">Start commissioning</div>
+      <h2 class="section-title">Put a finish line on good work.</h2>
+      <p class="section-desc">Connect to GenLayer StudioNet and publish the first bounty.</p><button
+        class="btn-primary enter-app-trigger" type="button">Enter Proof Purse ↗</button>
+    </section>
+    <footer class="app-footer"><span>Proof Purse · Verified bounty escrow</span><a class="footer-link"
+        href="https://github.com/001grindpa/proof-purse" target="_blank" rel="noreferrer">GitHub ↗</a></footer>
   </div>
-  <div id="app-view" class="view-container view-hidden"><header class="nav-header"><div class="nav-left"><button id="back-landing" class="btn-secondary" type="button">← <span>Landing</span></button><a class="brand-logo-container" href="#app-view"><img class="brand-logo-img" src="/static/proof-purse-logo-w.png" alt="" /><span class="brand-name">Proof Purse</span></a></div><div class="nav-actions"><button id="theme-toggle-btn" class="theme-toggle-btn" type="button" aria-label="Switch to light theme" aria-pressed="false"><span class="theme-toggle-icon" aria-hidden="true">☼</span></button><span class="status-pill desktop-only"><span class="status-dot"></span><span>StudioNet · 61999</span></span><button id="connect-btn" class="btn-primary" type="button">Connect wallet</button><button id="disconnect-btn" class="btn-secondary hidden" type="button">Disconnect</button></div></header><div class="contract-bar"><div><span class="status-dot status-dot-cyan"></span><strong>Live bounty contract</strong> <a id="contract-link" class="contract-address-link" target="_blank" rel="noreferrer">—</a></div><span>StudioNet / Native GEN</span></div><div class="stats-grid"><div class="glass-panel stat-panel"><span class="eyebrow-badge">Bounties written</span><strong id="stat-count">—</strong><span>on-chain count</span></div><div class="glass-panel stat-panel"><span class="eyebrow-badge gold-label">Reserved GEN</span><strong id="stat-reserved">—</strong><span>active escrow total</span></div><div class="glass-panel stat-panel"><span class="eyebrow-badge lime-label">Evidence rule</span><strong>2 hosts</strong><span>independent code sources</span></div></div><main class="dashboard-grid"><section class="glass-panel form-panel"><div class="panel-heading"><div><span class="eyebrow-badge">01 / Create</span><h2>Post bounty</h2></div><span class="status-pill">New brief</span></div><form id="create-form"><div class="form-group"><label class="form-label" for="title">Title</label><input id="title" class="input-field" placeholder="Ship the migration" required /></div><div class="form-group"><label class="form-label" for="spec-text">Specification</label><textarea id="spec-text" class="input-field" rows="5" placeholder="Describe what done looks like..." required></textarea></div><div class="form-group"><label class="form-label" for="spec-a">Spec URL A</label><input id="spec-a" class="input-field font-mono" type="url" placeholder="https://github.com/..." required /></div><div class="form-group"><label class="form-label" for="spec-b">Spec URL B <span class="form-hint">different host</span></label><input id="spec-b" class="input-field font-mono" type="url" placeholder="https://gitlab.com/..." required /></div><div class="form-row"><div class="form-group"><label class="form-label" for="deadline">Deadline</label><input id="deadline" class="input-field font-mono" type="datetime-local" required /></div><div class="form-group"><label class="form-label" for="amount">Reward <span class="form-hint">GEN</span></label><input id="amount" class="input-field font-mono" inputmode="decimal" placeholder="0.50" required /></div></div><button class="btn-primary w-full" type="submit">Lock bounty ↗</button></form></section><div class="right-stack"><section class="glass-panel form-panel"><div class="panel-heading"><div><span class="eyebrow-badge coral-label">02 / Submit</span><h2>Submit work</h2></div><span class="status-pill">Evidence</span></div><form id="submit-form"><div class="form-group"><label class="form-label" for="submit-id">Bounty ID</label><input id="submit-id" class="input-field font-mono" placeholder="1" required /></div><div class="form-group"><label class="form-label" for="work-a">Work URL A</label><input id="work-a" class="input-field font-mono" type="url" placeholder="https://github.com/..." required /></div><div class="form-group"><label class="form-label" for="work-b">Work URL B</label><input id="work-b" class="input-field font-mono" type="url" placeholder="https://codeberg.org/..." required /></div><button class="btn-primary w-full" type="submit">Submit proof ↗</button></form></section><section class="glass-panel form-panel compact"><div class="panel-heading"><div><span class="eyebrow-badge coral-label">03 / Settle</span><h2>Resolve or cancel</h2></div></div><div class="split-forms"><form id="resolve-form"><label class="form-label" for="resolve-id">Bounty ID</label><div class="inline-form"><input id="resolve-id" class="input-field font-mono" placeholder="1" required /><button class="btn-secondary" type="submit">Resolve</button></div></form><form id="cancel-form"><label class="form-label" for="cancel-id">Funder cancel</label><div class="inline-form"><input id="cancel-id" class="input-field font-mono" placeholder="1" required /><button class="btn-secondary" type="submit">Cancel</button></div></form></div></section><section class="glass-panel form-panel compact"><div class="panel-heading"><div><span class="eyebrow-badge">04 / Inspect</span><h2>Bounty lookup</h2></div></div><form id="lookup-form"><div class="inline-form"><input id="lookup-id" class="input-field font-mono" placeholder="1" required /><button class="btn-secondary" type="submit">Inspect</button></div></form><pre id="lookup-out" class="policy-json">No bounty loaded.</pre></section></div></main><section id="activity" class="glass-panel activity-panel"><div><span class="eyebrow-badge">Live activity</span><p id="status-msg">Connect a StudioNet wallet to write.</p></div><a class="btn-secondary" href="https://explorer-studio.genlayer.com/address/0x97298FdFf27aE250e8194a7cC66ea82975ea2B36" target="_blank" rel="noreferrer">View contract ↗</a><div id="tx-link" class="tx-box hidden"><span>Latest transaction:</span> <a id="tx-hash" target="_blank" rel="noreferrer"></a></div></section></div>
+  <div id="app-view" class="view-container view-hidden">
+    <header class="nav-header">
+      <div class="nav-left"><button id="back-landing" class="btn-secondary" type="button">←
+          <span>Landing</span></button><a class="brand-logo-container" href="#app-view"><img class="brand-logo-img"
+            src="/static/proof-purse-logo-w.png" alt="" /><span class="brand-name">Proof Purse</span></a></div>
+      <div class="nav-actions"><button id="theme-toggle-btn" class="theme-toggle-btn" type="button"
+          aria-label="Switch to light theme" aria-pressed="false"><span class="theme-toggle-icon"
+            aria-hidden="true">☼</span></button><span class="status-pill desktop-only"><span
+            class="status-dot"></span><span>StudioNet · 61999</span></span><button id="connect-btn" class="btn-primary"
+          type="button">Connect wallet</button><button id="disconnect-btn" class="btn-secondary hidden"
+          type="button">Disconnect</button></div>
+    </header>
+    <div class="contract-bar">
+      <div><span class="status-dot status-dot-cyan"></span><strong>Live bounty contract</strong> <a id="contract-link"
+          class="contract-address-link" target="_blank" rel="noreferrer">—</a></div><span>StudioNet / Native GEN</span>
+    </div>
+    <div class="stats-grid">
+      <div class="glass-panel stat-panel"><span class="eyebrow-badge">Bounties written</span><strong
+          id="stat-count">—</strong><span>on-chain count</span></div>
+      <div class="glass-panel stat-panel"><span class="eyebrow-badge gold-label">Reserved GEN</span><strong
+          id="stat-reserved">—</strong><span>active escrow total</span></div>
+      <div class="glass-panel stat-panel"><span class="eyebrow-badge lime-label">Evidence rule</span><strong>2
+          hosts</strong><span>independent code sources</span></div>
+    </div>
+    <main class="dashboard-grid">
+      <section class="glass-panel form-panel">
+        <div class="panel-heading">
+          <div><span class="eyebrow-badge">01 / Create</span>
+            <h2>Post bounty</h2>
+          </div><span class="status-pill">New brief</span>
+        </div>
+        <form id="create-form">
+          <div class="form-group"><label class="form-label" for="title">Title</label><input id="title"
+              class="input-field" placeholder="Ship the migration" required /></div>
+          <div class="form-group"><label class="form-label" for="spec-text">Specification</label><textarea
+              id="spec-text" class="input-field" rows="5" placeholder="Describe what done looks like..."
+              required></textarea></div>
+          <div class="form-group"><label class="form-label" for="spec-a">Spec URL A</label><input id="spec-a"
+              class="input-field font-mono" type="url" placeholder="https://github.com/..." required /></div>
+          <div class="form-group"><label class="form-label" for="spec-b">Spec URL B <span class="form-hint">different
+                host</span></label><input id="spec-b" class="input-field font-mono" type="url"
+              placeholder="https://gitlab.com/..." required /></div>
+          <div class="form-row">
+            <div class="form-group"><label class="form-label" for="deadline">Deadline</label><input id="deadline"
+                class="input-field font-mono" type="datetime-local" required /></div>
+            <div class="form-group"><label class="form-label" for="amount">Reward <span
+                  class="form-hint">GEN</span></label><input id="amount" class="input-field font-mono"
+                inputmode="decimal" placeholder="0.50" required /></div>
+          </div><button class="btn-primary w-full" type="submit">Lock bounty ↗</button>
+        </form>
+      </section>
+      <div class="right-stack">
+        <section class="glass-panel form-panel">
+          <div class="panel-heading">
+            <div><span class="eyebrow-badge coral-label">02 / Submit</span>
+              <h2>Submit work</h2>
+            </div><span class="status-pill">Evidence</span>
+          </div>
+          <form id="submit-form">
+            <div class="form-group"><label class="form-label" for="submit-id">Bounty ID</label><input id="submit-id"
+                class="input-field font-mono" placeholder="1" required /></div>
+            <div class="form-group"><label class="form-label" for="work-a">Work URL A</label><input id="work-a"
+                class="input-field font-mono" type="url" placeholder="https://github.com/..." required /></div>
+            <div class="form-group"><label class="form-label" for="work-b">Work URL B</label><input id="work-b"
+              class="input-field font-mono" type="url" placeholder="https://codeberg.org/..." required /></div>
+            <div class="form-group"><label class="form-label" for="payout-recipient">Payout recipient</label><input
+              id="payout-recipient" class="input-field font-mono" placeholder="0x..." /><span class="form-hint">0x address on the PR/commit, or leave blank to use this wallet</span></div><button
+              class="btn-primary w-full" type="submit">Submit proof ↗</button>
+          </form>
+        </section>
+        <section class="glass-panel form-panel compact">
+          <div class="panel-heading">
+            <div><span class="eyebrow-badge coral-label">03 / Settle</span>
+              <h2>Resolve or cancel</h2>
+            </div>
+          </div>
+          <div class="split-forms">
+            <form id="resolve-form"><label class="form-label" for="resolve-id">Bounty ID</label>
+              <div class="inline-form"><input id="resolve-id" class="input-field font-mono" placeholder="1"
+                  required /><button class="btn-secondary" type="submit">Resolve</button></div>
+            </form>
+            <div>
+              <form id="cancel-form"><label class="form-label" for="cancel-id">Funder cancel</label>
+                <div class="inline-form"><input id="cancel-id" class="input-field font-mono" placeholder="1"
+                    required /><button class="btn-secondary" type="submit">Cancel</button></div>
+              </form>
+              <form id="expire-form"><label class="form-label" for="expire-id">Expire stuck review</label>
+                <div class="inline-form"><input id="expire-id" class="input-field font-mono" placeholder="1"
+                    required /><button class="btn-secondary" type="submit">Expire review</button></div>
+              </form>
+            </div>
+          </div>
+        </section>
+        <section class="glass-panel form-panel compact">
+          <div class="panel-heading">
+            <div><span class="eyebrow-badge">04 / Inspect</span>
+              <h2>Bounty lookup</h2>
+            </div>
+          </div>
+          <form id="lookup-form">
+            <div class="inline-form"><input id="lookup-id" class="input-field font-mono" placeholder="1"
+                required /><button class="btn-secondary" type="submit">Inspect</button></div>
+          </form>
+          <pre id="lookup-out" class="policy-json">No bounty loaded.</pre>
+        </section>
+      </div>
+    </main>
+    <section id="activity" class="glass-panel activity-panel">
+      <div><span class="eyebrow-badge">Live activity</span>
+        <p id="status-msg">Connect a StudioNet wallet to write.</p>
+      </div><a class="btn-secondary"
+        href="https://explorer-studio.genlayer.com/address/0x792FeDB1066296e7De89bf1CD4b012e0fb02Cf58" target="_blank"
+        rel="noreferrer">View contract ↗</a>
+      <div id="tx-link" class="tx-box hidden"><span>Latest transaction:</span> <a id="tx-hash" target="_blank"
+          rel="noreferrer"></a></div>
+    </section>
+  </div>
   <script type="module" src="/static/app.js"></script>
 </body>
+
 </html>

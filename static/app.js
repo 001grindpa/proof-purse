@@ -1,7 +1,7 @@
 import { createClient } from "https://esm.sh/genlayer-js@0.18.0?bundle";
 import { studionet } from "https://esm.sh/genlayer-js@0.18.0/chains?bundle";
 
-const CONTRACT_ADDRESS = "0x97298FdFf27aE250e8194a7cC66ea82975ea2B36";
+const CONTRACT_ADDRESS = "0x792FeDB1066296e7De89bf1CD4b012e0fb02Cf58";
 const RPC_URL = "https://studio.genlayer.com/api";
 const CHAIN_ID = studionet.id;
 const CHAIN_HEX = `0x${Number(CHAIN_ID).toString(16)}`;
@@ -343,11 +343,15 @@ $("submit-form").addEventListener("submit", (event) => {
         const id = $("submit-id").value.trim();
         const a = $("work-a").value.trim();
         const b = $("work-b").value.trim();
+        const payoutRecipient = $("payout-recipient").value.trim();
         if (!id) throw new Error("Bounty ID is required.");
         requireCodePair(a, b, "Work URLs");
-        const hash = await sendWrite("submit_work", [id, a, b], 0n);
+        if (payoutRecipient && !/^0x[a-fA-F0-9]{40}$/.test(payoutRecipient)) {
+            throw new Error("Payout recipient must be a valid 0x address.");
+        }
+        const hash = await sendWrite("submit_work", [id, a, b, payoutRecipient || state.account], 0n);
         showTx(hash);
-        setStatus("Work submitted.", "ok");
+        setStatus("Work submitted. Recipient must appear on a work page or resolve will reopen.", "ok");
     });
 });
 
@@ -370,6 +374,18 @@ $("cancel-form").addEventListener("submit", (event) => {
         const hash = await sendWrite("cancel", [id], 0n);
         showTx(hash);
         setStatus("Cancel submitted.", "ok");
+        await refreshStats();
+    });
+});
+
+$("expire-form").addEventListener("submit", (event) => {
+    event.preventDefault();
+    runWrite(event.currentTarget, async () => {
+        const id = $("expire-id").value.trim();
+        if (!id) throw new Error("Bounty ID is required.");
+        const hash = await sendWrite("expire_review", [id], 0n);
+        showTx(hash);
+        setStatus("Expire submitted. Inspect after Accepted.", "ok");
         await refreshStats();
     });
 });
